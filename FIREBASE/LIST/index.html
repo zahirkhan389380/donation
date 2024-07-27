@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food List</title>
+    <link rel="stylesheet" href="../list/style1.css">
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCzH1dneA5yvBS1yplkV5J5Uk36OScN3PY",
+            authDomain: "zahir-khan-cd8d1.firebaseapp.com",
+            databaseURL: "https://zahir-khan-cd8d1-default-rtdb.firebaseio.com",
+            projectId: "zahir-khan-cd8d1",
+            storageBucket: "zahir-khan-cd8d1.appspot.com",
+            messagingSenderId: "882366704194",
+            appId: "1:882366704194:web:a5a18eb68681059fd49bdb",
+            measurementId: "G-6W0SP694ZB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const foodListRef = ref(database, 'zahir_khan/donationForm');
+            
+            onValue(foodListRef, (snapshot) => {
+                const tableBody = document.getElementById('foodList');
+                tableBody.innerHTML = ''; // Clear the table body
+                snapshot.forEach((childSnapshot) => {
+                    const item = childSnapshot.val();
+                    const row = document.createElement('tr');
+                    row.dataset.id = childSnapshot.key;
+                    row.innerHTML = `
+                        <td>${item.hotel}</td>
+                        <td>${item.food}</td>
+                        <td>${item.phone}</td>
+                        <td>${item.address}</td>
+                        <td>${item.email}</td>
+                        <td>${item.datetime}</td>
+                        <td><button onclick="deleteItem('${childSnapshot.key}', this)">Action</button></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            });
+        });
+
+        function deleteItem(id, button) {
+            console.log(`Attempting to delete item with ID: ${id}`);
+            if (confirm('Are you sure you want to delete this item?')) {
+                const itemRef = ref(database, `zahir_khan/donationForm/${id}`);
+                remove(itemRef)
+                .then(() => {
+                    alert('Item deleted successfully.');
+                    console.log('Item deleted from database.');
+                    const row = button.closest('tr');
+                    row.parentNode.removeChild(row);
+                })
+                .catch(error => {
+                    console.error('Error deleting item:', error);
+                    alert('Error deleting item. Check console for details.');
+                });
+            }
+        }
+
+        function searchTable(columnIndex, query) {
+            const tableBody = document.getElementById('foodList');
+            const rows = tableBody.getElementsByTagName('tr');
+
+            Array.from(rows).forEach(row => {
+                const cell = row.getElementsByTagName('td')[columnIndex];
+                if (cell) {
+                    const cellText = cell.textContent.toLowerCase();
+                    if (cellText.includes(query.toLowerCase())) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('hotelSearchBtn').addEventListener('click', function() {
+                const query = document.getElementById('hotelSearch').value;
+                searchTable(0, query);
+            });
+
+            document.getElementById('foodSearchBtn').addEventListener('click', function() {
+                const query = document.getElementById('foodSearch').value;
+                searchTable(1, query);
+            });
+
+            document.getElementById('phoneSearchBtn').addEventListener('click', function() {
+                const query = document.getElementById('phoneSearch').value;
+                searchTable(2, query);
+            });
+
+            document.getElementById('addressSearchBtn').addEventListener('click', function() {
+                const query = document.getElementById('addressSearch').value;
+                searchTable(3, query);
+            });
+
+            document.getElementById('emailSearchBtn').addEventListener('click', function() {
+                const query = document.getElementById('emailSearch').value;
+                searchTable(4, query);
+            });
+
+            document.getElementById('datetimeSearchBtn').addEventListener('click', function() {
+                const query = document.getElementById('datetimeSearch').value;
+                searchTable(5, query);
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+            <h1>FOOD DONATION PLATFORM LEH</h1>
+            <ul>
+                <li><a href="../HOTEL FORM/index.html">Donate Food</a></li>
+                <li><a href="../compline/index.html">Complain</a></li>
+                <li><a href="../HOME/pr.html">Home</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="content">
+        <h2>LIST OF FOOD ITEMS</h2>
+        <table id="foodListTable">
+            <thead>
+                <tr>
+                    <th>Hotel Name
+                        <input type="search" id="hotelSearch" name="q" placeholder="Search hotel name">
+                        <button id="hotelSearchBtn">Search</button>
+                    </th>
+                    <th>Food Description
+                        <input type="search" id="foodSearch" name="q" placeholder="Search food.">
+                        <button id="foodSearchBtn">Search</button>
+                    </th>
+                    <th>Phone
+                        <input type="search" id="phoneSearch" name="q" placeholder="Search Phone.">
+                        <button id="phoneSearchBtn">Search</button>
+                    </th>
+                    <th>Address
+                        <input type="search" id="addressSearch" name="q" placeholder="Search address">
+                        <button id="addressSearchBtn">Search</button>
+                    </th>
+                    <th>Email
+                        <input type="search" id="emailSearch" name="q" placeholder="Search email">
+                        <button id="emailSearchBtn">Search</button>
+                    </th>
+                    <th>Datetime
+                        <input type="search" id="datetimeSearch" name="q" placeholder="Search date">
+                        <button id="datetimeSearchBtn">Search</button>
+                    </th>
+                    <th>SELECT</th>
+                </tr>
+            </thead>
+            <tbody id="foodList">
+                <!-- Data will be appended here -->
+            </tbody>
+        </table>
+    </div>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section about">
+                <h3>About Us</h3>
+                <p>Our mission is to facilitate the donation of food items to those in need, helping to reduce food waste and hunger.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Donate Food. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+
+</html>
